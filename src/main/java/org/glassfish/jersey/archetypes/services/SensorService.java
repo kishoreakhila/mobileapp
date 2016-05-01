@@ -9,4 +9,7 @@ import org.glassfish.jersey.archetypes.model.Sensor;
 public interface SensorService {
     public Sensor getSensorBySensorId(int sensorId, String sessionToken) throws Exception;
     public JSONArray getAllSensorInformation(String sessionToken) throws Exception;
+    public int deleteSensor(int sensorId,  String sessionToken) throws Exception;
+    public int updateSensor(int sensorId, String maintenanceDate, String sessionToken) throws Exception;
+    public int addSensor(Sensor sensor, String sessionToken) throws Exception;
 }

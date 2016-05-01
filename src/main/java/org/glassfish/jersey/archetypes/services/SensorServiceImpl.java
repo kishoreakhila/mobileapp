@@ -6,7 +6,10 @@ import net.sf.json.JSONArray;
 import org.glassfish.jersey.archetypes.DatabaseConnectionProvider;
 import org.glassfish.jersey.archetypes.model.Sensor;
 
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 
 /**
  * Created by akhilakishore on 29/04/16.
@@ -21,7 +24,7 @@ public class SensorServiceImpl implements SensorService {
         if(!ServiceFactory.getServiceFactory().getAdminService().isLogin(sessionToken)){
             return null;
         }
-        ResultSet resultSet = db.select("select * from SENSOR where sensorID="+sensorId+";");
+        ResultSet resultSet = db.select("select * from SENSOR where sensorId="+sensorId+";");
         Sensor sensor = new Sensor();
         if (resultSet.next()){
             sensor.setSensorId(resultSet.getInt(1));
@@ -53,6 +56,45 @@ public class SensorServiceImpl implements SensorService {
         }
             return array;
     }
+
+    public int deleteSensor(int sensorId, String sessionToken) throws Exception {
+        if(!ServiceFactory.getServiceFactory().getAdminService().isLogin(sessionToken)){
+            return -1;
+        }
+        return db.insertUpdateDelete("Delete from SENSOR where sensorId="+sensorId);
+    }
+
+    public int updateSensor(int sensorId, String maintenanceDate,String sessionToken)throws Exception{
+        if(!ServiceFactory.getServiceFactory().getAdminService().isLogin(sessionToken)){
+            return -1;
+        }
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+        java.util.Date date = sdf1.parse(maintenanceDate);
+        java.sql.Date sqlDate = new java.sql.Date(date.getTime());
+        PreparedStatement preparedStatement = db.getConnection().prepareStatement("Update SENSOR Set sensorMaintenanceDate=? where sensorID=?");
+        preparedStatement.setDate(1, sqlDate);
+        preparedStatement.setInt(2, sensorId);
+        int result = preparedStatement.executeUpdate();
+        preparedStatement.close();
+        return result;
+
+    }
+    public int addSensor(Sensor sensor, String sessionToken) throws Exception {
+        if (!ServiceFactory.getServiceFactory().getAdminService().isLogin(sessionToken)) {
+            return -1;
+        }
+        PreparedStatement preparedStatement = db.getConnection().prepareStatement("Insert into SENSOR values(?,?,?,?,?,?)");
+        preparedStatement.setInt(1, sensor.getSensorId());
+        preparedStatement.setString(2, sensor.getSensorName());
+        preparedStatement.setDate(3, new Date(sensor.getSensorInstallationDate().getTime()));
+        preparedStatement.setDate(4, new Date(sensor.getSensorMaintenanceDate().getTime()));
+        preparedStatement.setInt(5, sensor.getTreeId());
+        preparedStatement.setString(6,sensor.getAdminId());
+        int result = preparedStatement.executeUpdate();
+        preparedStatement.close();
+        return result;
+    }
+
     public static void main(String args[]) throws Exception {
         new SensorServiceImpl(DatabaseConnectionProvider.getDatabaseProvider()).getAllSensorInformation("akhila@gmail.com");
     }
